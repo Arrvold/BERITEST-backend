@@ -1,0 +1,297 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model mst_answer {
+  id_answer           Int               @id @default(autoincrement())
+  id_question         Int?
+  answer_desc         String?
+  answer_content_json Json?
+  answer_content_html String?
+  is_correct          Boolean?          @default(false)
+  created_at          DateTime?         @default(now()) @db.Timestamptz(6)
+  created_by          String?           @db.Uuid
+  updated_at          DateTime?         @db.Timestamptz(6)
+  updated_by          String?           @db.Uuid
+  mst_question        mst_question?     @relation(fields: [id_question], references: [id_question], onDelete: NoAction, onUpdate: NoAction, map: "fk_answer_question")
+  trn_user_answer     trn_user_answer[]
+}
+
+model mst_batch {
+  id_batch       Int              @id @default(autoincrement())
+  id_course      Int?
+  nama_batch     String?          @db.VarChar(100)
+  start_date     DateTime?        @db.Date
+  end_date       DateTime?        @db.Date
+  is_active      Boolean?         @default(true)
+  created_at     DateTime?        @default(now()) @db.Timestamptz(6)
+  created_by     String?          @db.Uuid
+  updated_at     DateTime?        @db.Timestamptz(6)
+  updated_by     String?          @db.Uuid
+  mst_course     mst_course?      @relation(fields: [id_course], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_batch_course")
+  trn_batch_user trn_batch_user[]
+}
+
+model mst_course {
+  id               Int                @id @default(autoincrement())
+  course_title     String?            @db.VarChar(255)
+  description      String?
+  creator_id       String?            @db.Uuid
+  is_active        Boolean?           @default(true)
+  created_at       DateTime?          @default(now()) @db.Timestamptz(6)
+  created_by       String?            @db.Uuid
+  updated_at       DateTime?          @db.Timestamptz(6)
+  updated_by       String?            @db.Uuid
+  mst_batch        mst_batch[]
+  mst_users        mst_users?         @relation(fields: [creator_id], references: [id_user], onDelete: NoAction, onUpdate: NoAction, map: "fk_course_creator")
+  trn_test_session trn_test_session[]
+}
+
+model mst_group_question {
+  id_group                   Int                          @id @default(autoincrement())
+  group_name                 String?                      @db.VarChar(150)
+  description                String?                      @db.VarChar(500)
+  created_at                 DateTime?                    @default(now()) @db.Timestamptz(6)
+  created_by                 String?                      @db.Uuid
+  updated_at                 DateTime?                    @db.Timestamptz(6)
+  updated_by                 String?                      @db.Uuid
+  trn_question_group_item    trn_question_group_item[]
+  trn_session_question_group trn_session_question_group[]
+  trn_test_attempt           trn_test_attempt[]
+}
+
+model mst_position {
+  id_position           Int                     @id @default(autoincrement())
+  position_name         String?                 @db.VarChar(100)
+  created_at            DateTime?               @default(now()) @db.Timestamptz(6)
+  created_by            String?                 @db.Uuid
+  updated_at            DateTime?               @db.Timestamptz(6)
+  updated_by            String?                 @db.Uuid
+  trn_question_position trn_question_position[]
+  trn_user_position     trn_user_position[]
+}
+
+model mst_question {
+  id_question             Int                       @id @default(autoincrement())
+  question_desc           String?
+  question_content_json   Json?
+  question_content_html   String?
+  img_path                String?                   @db.VarChar(255)
+  total_attempts          Int?                      @default(0)
+  total_wrong             Int?                      @default(0)
+  difficulty_flag         String?                   @db.VarChar(20)
+  created_at              DateTime?                 @default(now()) @db.Timestamptz(6)
+  created_by              String?                   @db.Uuid
+  updated_at              DateTime?                 @db.Timestamptz(6)
+  updated_by              String?                   @db.Uuid
+  mst_answer              mst_answer[]
+  trn_attempt_question    trn_attempt_question[]
+  trn_question_group_item trn_question_group_item[]
+  trn_question_position   trn_question_position[]
+}
+
+model mst_role {
+  id_role    Int         @id @default(autoincrement())
+  name_role  String      @db.VarChar(100)
+  is_active  Boolean?    @default(true)
+  created_at DateTime?   @default(now()) @db.Timestamptz(6)
+  created_by String?     @db.Uuid
+  updated_at DateTime?   @db.Timestamptz(6)
+  updated_by String?     @db.Uuid
+  mst_users  mst_users[]
+}
+
+model mst_users {
+  id_user                  String                     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  nama_user                String                     @db.VarChar(150)
+  email                    String?                    @db.VarChar(150)
+  password                 String?                    @db.VarChar(255)
+  id_role                  Int?
+  is_active                Boolean?                   @default(true)
+  created_at               DateTime?                  @default(now()) @db.Timestamptz(6)
+  created_by               String?                    @db.Uuid
+  updated_at               DateTime?                  @db.Timestamptz(6)
+  updated_by               String?                    @db.Uuid
+  mst_course               mst_course[]
+  mst_role                 mst_role?                  @relation(fields: [id_role], references: [id_role], onDelete: NoAction, onUpdate: NoAction, map: "fk_users_role")
+  trn_ai_generation_log    trn_ai_generation_log[]
+  trn_batch_user           trn_batch_user[]
+  trn_test_attempt         trn_test_attempt[]
+  trn_user_position        trn_user_position[]
+  trn_user_session_mapping trn_user_session_mapping[]
+}
+
+model trn_ai_generation_log {
+  id_ai_log       Int        @id @default(autoincrement())
+  generation_type String?    @db.VarChar(50)
+  prompt_text     String?
+  response_text   String?
+  model_name      String?    @db.VarChar(100)
+  status          String?    @db.VarChar(30)
+  created_at      DateTime?  @default(now()) @db.Timestamptz(6)
+  created_by      String?    @db.Uuid
+  updated_at      DateTime?  @db.Timestamptz(6)
+  updated_by      String?    @db.Uuid
+  mst_users       mst_users? @relation(fields: [created_by], references: [id_user], onDelete: NoAction, onUpdate: NoAction, map: "fk_ai_log_user")
+}
+
+model trn_attempt_question {
+  id_test_attempt_question Int               @id @default(autoincrement())
+  id_test_attempt          Int?
+  id_question              Int?
+  question_order           Int?
+  time_spent_seconds       Int?              @default(0)
+  is_answered              Boolean?          @default(false)
+  created_at               DateTime?         @default(now()) @db.Timestamptz(6)
+  created_by               String?           @db.Uuid
+  updated_at               DateTime?         @db.Timestamptz(6)
+  updated_by               String?           @db.Uuid
+  trn_test_attempt         trn_test_attempt? @relation(fields: [id_test_attempt], references: [id_test_attempt], onDelete: NoAction, onUpdate: NoAction, map: "fk_attempt_question_attempt")
+  mst_question             mst_question?     @relation(fields: [id_question], references: [id_question], onDelete: NoAction, onUpdate: NoAction, map: "fk_attempt_question_master")
+  trn_user_answer          trn_user_answer[]
+
+  @@index([id_test_attempt], map: "idx_attempt_question_attempt")
+}
+
+model trn_batch_user {
+  id_batch_user Int        @id @default(autoincrement())
+  id_batch      Int?
+  id_user       String?    @db.Uuid
+  status        String?    @db.VarChar(30)
+  joined_at     DateTime?  @db.Timestamptz(6)
+  created_at    DateTime?  @default(now()) @db.Timestamptz(6)
+  created_by    String?    @db.Uuid
+  updated_at    DateTime?  @db.Timestamptz(6)
+  updated_by    String?    @db.Uuid
+  mst_batch     mst_batch? @relation(fields: [id_batch], references: [id_batch], onDelete: NoAction, onUpdate: NoAction, map: "fk_batch_user_batch")
+  mst_users     mst_users? @relation(fields: [id_user], references: [id_user], onDelete: NoAction, onUpdate: NoAction, map: "fk_batch_user_user")
+}
+
+model trn_question_group_item {
+  id_group_question  Int                 @id @default(autoincrement())
+  id_group           Int?
+  id_question        Int?
+  created_at         DateTime?           @default(now()) @db.Timestamptz(6)
+  created_by         String?             @db.Uuid
+  updated_at         DateTime?           @db.Timestamptz(6)
+  updated_by         String?             @db.Uuid
+  mst_group_question mst_group_question? @relation(fields: [id_group], references: [id_group], onDelete: NoAction, onUpdate: NoAction, map: "fk_group_item_group")
+  mst_question       mst_question?       @relation(fields: [id_question], references: [id_question], onDelete: NoAction, onUpdate: NoAction, map: "fk_group_item_question")
+}
+
+model trn_question_position {
+  id           Int          @id @default(autoincrement())
+  id_question  Int
+  id_position  Int
+  created_at   DateTime?    @default(now()) @db.Timestamptz(6)
+  created_by   String?      @db.Uuid
+  updated_at   DateTime?    @db.Timestamptz(6)
+  updated_by   String?      @db.Uuid
+  mst_position mst_position @relation(fields: [id_position], references: [id_position], onDelete: NoAction, onUpdate: NoAction, map: "fk_question_pos_position")
+  mst_question mst_question @relation(fields: [id_question], references: [id_question], onDelete: NoAction, onUpdate: NoAction, map: "fk_question_pos_question")
+
+  @@unique([id_question, id_position], map: "trn_question_position_unique")
+}
+
+model trn_session_question_group {
+  id_session_group   Int                 @id @default(autoincrement())
+  id_session         Int?
+  id_question_group  Int?
+  created_at         DateTime?           @default(now()) @db.Timestamptz(6)
+  created_by         String?             @db.Uuid
+  updated_at         DateTime?           @db.Timestamptz(6)
+  updated_by         String?             @db.Uuid
+  mst_group_question mst_group_question? @relation(fields: [id_question_group], references: [id_group], onDelete: NoAction, onUpdate: NoAction, map: "fk_session_group_master")
+  trn_test_session   trn_test_session?   @relation(fields: [id_session], references: [id_session], onDelete: NoAction, onUpdate: NoAction, map: "fk_session_group_session")
+}
+
+model trn_test_attempt {
+  id_test_attempt      Int                    @id @default(autoincrement())
+  id_session           Int?
+  id_question_group    Int?
+  id_user              String?                @db.Uuid
+  started_at           DateTime?              @db.Timestamptz(6)
+  submitted_at         DateTime?              @db.Timestamptz(6)
+  status               String?                @db.VarChar(30)
+  score                Decimal?               @db.Decimal(5, 2)
+  total_correct        Int?
+  total_wrong          Int?
+  duration_seconds     Int?
+  created_at           DateTime?              @default(now()) @db.Timestamptz(6)
+  created_by           String?                @db.Uuid
+  updated_at           DateTime?              @db.Timestamptz(6)
+  updated_by           String?                @db.Uuid
+  trn_attempt_question trn_attempt_question[]
+  mst_group_question   mst_group_question?    @relation(fields: [id_question_group], references: [id_group], onDelete: NoAction, onUpdate: NoAction, map: "fk_attempt_group")
+  trn_test_session     trn_test_session?      @relation(fields: [id_session], references: [id_session], onDelete: NoAction, onUpdate: NoAction, map: "fk_attempt_session")
+  mst_users            mst_users?             @relation(fields: [id_user], references: [id_user], onDelete: NoAction, onUpdate: NoAction, map: "fk_attempt_user")
+
+  @@index([id_session], map: "idx_attempt_session")
+  @@index([id_user], map: "idx_attempt_user")
+}
+
+model trn_test_session {
+  id_session                 Int                          @id @default(autoincrement())
+  session_name               String?                      @db.VarChar(255)
+  description                String?                      @db.VarChar(255)
+  id_course                  Int?
+  start_time                 DateTime?                    @db.Timestamptz(6)
+  end_time                   DateTime?                    @db.Timestamptz(6)
+  duration_minutes           Int?
+  passing_score              Decimal?                     @db.Decimal(5, 2)
+  random_question            Boolean?                     @default(true)
+  random_answer              Boolean?                     @default(true)
+  is_seb_required            Boolean?                     @default(false)
+  status                     String?                      @db.VarChar(30)
+  created_at                 DateTime?                    @default(now()) @db.Timestamptz(6)
+  created_by                 String?                      @db.Uuid
+  updated_at                 DateTime?                    @db.Timestamptz(6)
+  updated_by                 String?                      @db.Uuid
+  trn_session_question_group trn_session_question_group[]
+  trn_test_attempt           trn_test_attempt[]
+  mst_course                 mst_course?                  @relation(fields: [id_course], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_session_course")
+  trn_user_session_mapping   trn_user_session_mapping[]
+}
+
+model trn_user_answer {
+  id_user_answer           Int                   @id @default(autoincrement())
+  id_test_attempt_question Int?
+  id_answer_option         Int?
+  is_correct               Boolean?
+  answered_at              DateTime?             @db.Timestamptz(6)
+  created_at               DateTime?             @default(now()) @db.Timestamptz(6)
+  created_by               String?               @db.Uuid
+  updated_at               DateTime?             @db.Timestamptz(6)
+  updated_by               String?               @db.Uuid
+  trn_attempt_question     trn_attempt_question? @relation(fields: [id_test_attempt_question], references: [id_test_attempt_question], onDelete: NoAction, onUpdate: NoAction, map: "fk_user_answer_attempt_q")
+  mst_answer               mst_answer?           @relation(fields: [id_answer_option], references: [id_answer], onDelete: NoAction, onUpdate: NoAction, map: "fk_user_answer_option")
+
+  @@index([id_test_attempt_question], map: "idx_user_answer_attempt_q")
+}
+
+model trn_user_position {
+  id_user_position Int           @id @default(autoincrement())
+  id_user          String?       @db.Uuid
+  id_position      Int?
+  is_primary       Boolean?      @default(false)
+  created_at       DateTime?     @default(now()) @db.Timestamptz(6)
+  mst_position     mst_position? @relation(fields: [id_position], references: [id_position], onDelete: NoAction, onUpdate: NoAction, map: "fk_user_position_master")
+  mst_users        mst_users?    @relation(fields: [id_user], references: [id_user], onDelete: NoAction, onUpdate: NoAction, map: "fk_user_position_user")
+}
+
+model trn_user_session_mapping {
+  id_map_session   Int               @id @default(autoincrement())
+  id_session       Int?
+  id_user          String?           @db.Uuid
+  end_date         DateTime?         @db.Timestamptz(6)
+  created_at       DateTime?         @default(now()) @db.Timestamptz(6)
+  created_by       String?           @db.Uuid
+  updated_at       DateTime?         @db.Timestamptz(6)
+  updated_by       String?           @db.Uuid
+  trn_test_session trn_test_session? @relation(fields: [id_session], references: [id_session], onDelete: NoAction, onUpdate: NoAction, map: "fk_user_session_session")
+  mst_users        mst_users?        @relation(fields: [id_user], references: [id_user], onDelete: NoAction, onUpdate: NoAction, map: "fk_user_session_user")
+}
