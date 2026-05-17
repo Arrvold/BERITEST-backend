@@ -3,6 +3,58 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import prisma from '../utils/prisma';
 
+export const register = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { nama_user, email, password, id_role } = req.body;
+
+    if (!nama_user || !email || !password) {
+      res.status(400).json({ message: 'Name, email, and password are required' });
+      return;
+    }
+
+    const existingUser = await prisma.mst_users.findFirst({ where: { email } });
+    if (existingUser) {
+      res.status(400).json({ message: 'Email already exists' });
+      return;
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const newUser = await prisma.mst_users.create({
+      data: {
+        nama_user,
+        email,
+        password: hashedPassword,
+        id_role: id_role || null // Can assign admin role if provided
+      }
+    });
+
+    res.status(201).json({
+      message: 'User registered successfully',
+      data: {
+        id_user: newUser.id_user,
+        nama_user: newUser.nama_user,
+        email: newUser.email
+      }
+    });
+  } catch (error: any) {
+    console.error('Register error:', error);
+    
+    // Handle Prisma specific errors
+    if (error.code === 'P2003') {
+      res.status(400).json({ 
+        message: 'Foreign key constraint failed. Make sure the id_role exists in mst_role table.' 
+      });
+      return;
+    }
+
+    res.status(500).json({ 
+      message: 'Internal server error', 
+      error: error instanceof Error ? error.message : String(error) 
+    });
+  }
+};
+
 export const login = async (req: Request, res: Response): Promise<void> => {
   try {
     const { email, password } = req.body;
@@ -61,7 +113,10 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     });
   } catch (error) {
     console.error('Login error:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ 
+      message: 'Internal server error', 
+      error: error instanceof Error ? error.message : String(error) 
+    });
   }
 };
 
@@ -73,6 +128,9 @@ export const logout = async (req: Request, res: Response): Promise<void> => {
     res.status(200).json({ message: 'Logout successful' });
   } catch (error) {
     console.error('Logout error:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ 
+      message: 'Internal server error', 
+      error: error instanceof Error ? error.message : String(error) 
+    });
   }
 };
