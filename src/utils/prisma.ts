@@ -1,8 +1,17 @@
 import { PrismaClient } from '@prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
+import pg from 'pg';
+import dotenv from 'dotenv';
 
-const prisma = new PrismaClient({
-  // In Prisma 7, the URL might need to be passed here or is still picked up from env?
-  // Let's rely on default behavior or pass adapter later if needed.
+dotenv.config();
+
+const connectionString = process.env.DATABASE_URL;
+const pool = new pg.Pool({ 
+  connectionString,
+  // Ensure the driver always uses the 'dev' schema
+  options: '-c search_path=dev' 
 });
+const adapter = new PrismaPg(pool);
+const prisma = new PrismaClient({ adapter });
 
 export default prisma;

@@ -1,9 +1,11 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
 }
 
 datasource db {
   provider = "postgresql"
+  schemas  = ["dev"]
 }
 
 model mst_answer {
@@ -19,6 +21,9 @@ model mst_answer {
   updated_by          String?           @db.Uuid
   mst_question        mst_question?     @relation(fields: [id_question], references: [id_question], onDelete: NoAction, onUpdate: NoAction, map: "fk_answer_question")
   trn_user_answer     trn_user_answer[]
+
+  @@map("mst_answer")
+  @@schema("dev")
 }
 
 model mst_batch {
@@ -34,6 +39,9 @@ model mst_batch {
   updated_by     String?          @db.Uuid
   mst_course     mst_course?      @relation(fields: [id_course], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_batch_course")
   trn_batch_user trn_batch_user[]
+
+  @@map("mst_batch")
+  @@schema("dev")
 }
 
 model mst_course {
@@ -49,6 +57,9 @@ model mst_course {
   mst_batch        mst_batch[]
   mst_users        mst_users?         @relation(fields: [creator_id], references: [id_user], onDelete: NoAction, onUpdate: NoAction, map: "fk_course_creator")
   trn_test_session trn_test_session[]
+
+  @@map("mst_course")
+  @@schema("dev")
 }
 
 model mst_group_question {
@@ -62,6 +73,9 @@ model mst_group_question {
   trn_question_group_item    trn_question_group_item[]
   trn_session_question_group trn_session_question_group[]
   trn_test_attempt           trn_test_attempt[]
+
+  @@map("mst_group_question")
+  @@schema("dev")
 }
 
 model mst_position {
@@ -73,6 +87,9 @@ model mst_position {
   updated_by            String?                 @db.Uuid
   trn_question_position trn_question_position[]
   trn_user_position     trn_user_position[]
+
+  @@map("mst_position")
+  @@schema("dev")
 }
 
 model mst_question {
@@ -92,6 +109,9 @@ model mst_question {
   trn_attempt_question    trn_attempt_question[]
   trn_question_group_item trn_question_group_item[]
   trn_question_position   trn_question_position[]
+
+  @@map("mst_question")
+  @@schema("dev")
 }
 
 model mst_role {
@@ -103,6 +123,9 @@ model mst_role {
   updated_at DateTime?   @db.Timestamptz(6)
   updated_by String?     @db.Uuid
   mst_users  mst_users[]
+
+  @@map("mst_role")
+  @@schema("dev")
 }
 
 model mst_users {
@@ -123,6 +146,9 @@ model mst_users {
   trn_test_attempt         trn_test_attempt[]
   trn_user_position        trn_user_position[]
   trn_user_session_mapping trn_user_session_mapping[]
+
+  @@map("mst_users")
+  @@schema("dev")
 }
 
 model trn_ai_generation_log {
@@ -137,6 +163,9 @@ model trn_ai_generation_log {
   updated_at      DateTime?  @db.Timestamptz(6)
   updated_by      String?    @db.Uuid
   mst_users       mst_users? @relation(fields: [created_by], references: [id_user], onDelete: NoAction, onUpdate: NoAction, map: "fk_ai_log_user")
+
+  @@map("trn_ai_generation_log")
+  @@schema("dev")
 }
 
 model trn_attempt_question {
@@ -155,6 +184,8 @@ model trn_attempt_question {
   trn_user_answer          trn_user_answer[]
 
   @@index([id_test_attempt], map: "idx_attempt_question_attempt")
+  @@map("trn_attempt_question")
+  @@schema("dev")
 }
 
 model trn_batch_user {
@@ -169,6 +200,9 @@ model trn_batch_user {
   updated_by    String?    @db.Uuid
   mst_batch     mst_batch? @relation(fields: [id_batch], references: [id_batch], onDelete: NoAction, onUpdate: NoAction, map: "fk_batch_user_batch")
   mst_users     mst_users? @relation(fields: [id_user], references: [id_user], onDelete: NoAction, onUpdate: NoAction, map: "fk_batch_user_user")
+
+  @@map("trn_batch_user")
+  @@schema("dev")
 }
 
 model trn_question_group_item {
@@ -181,6 +215,9 @@ model trn_question_group_item {
   updated_by         String?             @db.Uuid
   mst_group_question mst_group_question? @relation(fields: [id_group], references: [id_group], onDelete: NoAction, onUpdate: NoAction, map: "fk_group_item_group")
   mst_question       mst_question?       @relation(fields: [id_question], references: [id_question], onDelete: NoAction, onUpdate: NoAction, map: "fk_group_item_question")
+
+  @@map("trn_question_group_item")
+  @@schema("dev")
 }
 
 model trn_question_position {
@@ -195,6 +232,8 @@ model trn_question_position {
   mst_question mst_question @relation(fields: [id_question], references: [id_question], onDelete: NoAction, onUpdate: NoAction, map: "fk_question_pos_question")
 
   @@unique([id_question, id_position], map: "trn_question_position_unique")
+  @@map("trn_question_position")
+  @@schema("dev")
 }
 
 model trn_session_question_group {
@@ -207,6 +246,9 @@ model trn_session_question_group {
   updated_by         String?             @db.Uuid
   mst_group_question mst_group_question? @relation(fields: [id_question_group], references: [id_group], onDelete: NoAction, onUpdate: NoAction, map: "fk_session_group_master")
   trn_test_session   trn_test_session?   @relation(fields: [id_session], references: [id_session], onDelete: NoAction, onUpdate: NoAction, map: "fk_session_group_session")
+
+  @@map("trn_session_question_group")
+  @@schema("dev")
 }
 
 model trn_test_attempt {
@@ -232,6 +274,8 @@ model trn_test_attempt {
 
   @@index([id_session], map: "idx_attempt_session")
   @@index([id_user], map: "idx_attempt_user")
+  @@map("trn_test_attempt")
+  @@schema("dev")
 }
 
 model trn_test_session {
@@ -255,6 +299,9 @@ model trn_test_session {
   trn_test_attempt           trn_test_attempt[]
   mst_course                 mst_course?                  @relation(fields: [id_course], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_session_course")
   trn_user_session_mapping   trn_user_session_mapping[]
+
+  @@map("trn_test_session")
+  @@schema("dev")
 }
 
 model trn_user_answer {
@@ -271,6 +318,8 @@ model trn_user_answer {
   mst_answer               mst_answer?           @relation(fields: [id_answer_option], references: [id_answer], onDelete: NoAction, onUpdate: NoAction, map: "fk_user_answer_option")
 
   @@index([id_test_attempt_question], map: "idx_user_answer_attempt_q")
+  @@map("trn_user_answer")
+  @@schema("dev")
 }
 
 model trn_user_position {
@@ -281,6 +330,9 @@ model trn_user_position {
   created_at       DateTime?     @default(now()) @db.Timestamptz(6)
   mst_position     mst_position? @relation(fields: [id_position], references: [id_position], onDelete: NoAction, onUpdate: NoAction, map: "fk_user_position_master")
   mst_users        mst_users?    @relation(fields: [id_user], references: [id_user], onDelete: NoAction, onUpdate: NoAction, map: "fk_user_position_user")
+
+  @@map("trn_user_position")
+  @@schema("dev")
 }
 
 model trn_user_session_mapping {
@@ -294,4 +346,7 @@ model trn_user_session_mapping {
   updated_by       String?           @db.Uuid
   trn_test_session trn_test_session? @relation(fields: [id_session], references: [id_session], onDelete: NoAction, onUpdate: NoAction, map: "fk_user_session_session")
   mst_users        mst_users?        @relation(fields: [id_user], references: [id_user], onDelete: NoAction, onUpdate: NoAction, map: "fk_user_session_user")
+
+  @@map("trn_user_session_mapping")
+  @@schema("dev")
 }
