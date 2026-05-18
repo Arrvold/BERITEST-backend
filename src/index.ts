@@ -24,11 +24,13 @@ import authRoutes from './routes/auth.routes';
 import userRoutes from './routes/user.routes';
 import courseRoutes from './routes/course.routes';
 import batchRoutes from './routes/batch.routes';
+import testSessionRoutes from './routes/test-session.routes';
 
 app.use('/auth', authRoutes);
 app.use('/users', userRoutes);
 app.use('/courses', courseRoutes);
 app.use('/batches', batchRoutes);
+app.use('/test-sessions', testSessionRoutes);
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
