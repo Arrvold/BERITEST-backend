@@ -22,9 +22,13 @@ app.get('/', (req: Request, res: Response) => {
 // Import and use routes here
 import authRoutes from './routes/auth.routes';
 import userRoutes from './routes/user.routes';
+import courseRoutes from './routes/course.routes';
+import batchRoutes from './routes/batch.routes';
 
 app.use('/auth', authRoutes);
 app.use('/users', userRoutes);
+app.use('/courses', courseRoutes);
+app.use('/batches', batchRoutes);
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
