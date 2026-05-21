@@ -300,3 +300,36 @@ export const assignUsersToBatch = async (req: AuthRequest, res: Response): Promi
     });
   }
 };
+
+// DELETE /batches/:id/remove-users
+export const removeUsersFromBatch = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const id = parseInt(req.params.id as string, 10);
+    const { user_ids } = req.body; // Array of user UUIDs
+
+    const batch = await prisma.mst_batch.findUnique({ where: { id_batch: id } });
+    if (!batch) {
+      res.status(404).json({ message: 'Batch not found' });
+      return;
+    }
+
+    await prisma.trn_batch_user.deleteMany({
+      where: {
+        id_batch: id,
+        id_user: { in: user_ids }
+      }
+    });
+
+    res.status(200).json({ 
+      message: `Successfully removed users from the batch`,
+      removed_users: user_ids
+    });
+  } catch (error) {
+    console.error('Error removing users from batch:', error);
+    res.status(500).json({ 
+      message: 'Internal server error', 
+      error: error instanceof Error ? error.message : String(error) 
+    });
+  }
+};
+
