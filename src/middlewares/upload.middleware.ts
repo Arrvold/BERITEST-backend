@@ -12,16 +12,19 @@ export const uploadExcel = multer({
     const ext = path.extname(file.originalname).toLowerCase();
     const allowedMimeTypes = [
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
-      'application/vnd.ms-excel' // .xls
+      'application/vnd.ms-excel', // .xls
+      'text/csv', // .csv
+      'application/csv'
     ];
 
-    if (ext === '.xlsx' || ext === '.xls' || allowedMimeTypes.includes(file.mimetype)) {
+    if (ext === '.xlsx' || ext === '.xls' || ext === '.csv' || allowedMimeTypes.includes(file.mimetype)) {
       cb(null, true);
     } else {
-      cb(new Error('Only Excel files are allowed'));
+      cb(new Error('Only Excel and CSV files are allowed'));
     }
   },
   limits: {
     fileSize: 5 * 1024 * 1024 // 5MB limit
   }
 });
+

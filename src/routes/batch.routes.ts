@@ -6,7 +6,8 @@ import {
   getBatchDetail,
   updateBatch,
   deleteBatch,
-  assignUsersToBatch
+  assignUsersToBatch,
+  removeUsersFromBatch
 } from '../controllers/batch.controller';
 import { authenticateToken } from '../middlewares/auth.middleware';
 import { validate } from '../middlewares/validate.middleware';
@@ -43,5 +44,8 @@ router.delete('/:id', validate(batchIdParamSchema), deleteBatch);
 
 // Assign Users to Batch
 router.post('/:id/assign-users', validate(assignUsersBatchSchema), assignUsersToBatch);
+
+// Remove Users from Batch
+router.delete('/:id/remove-users', validate(assignUsersBatchSchema), removeUsersFromBatch);
 
 export default router;
