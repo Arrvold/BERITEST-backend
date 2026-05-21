@@ -25,12 +25,20 @@ import userRoutes from './routes/user.routes';
 import courseRoutes from './routes/course.routes';
 import batchRoutes from './routes/batch.routes';
 import testSessionRoutes from './routes/test-session.routes';
+import positionRoutes from './routes/position.routes';
+import questionRoutes from './routes/question.routes';
+import questionGroupRoutes from './routes/question-group.routes';
+import attemptRoutes from './routes/attempt.routes';
 
 app.use('/auth', authRoutes);
 app.use('/users', userRoutes);
 app.use('/courses', courseRoutes);
 app.use('/batches', batchRoutes);
 app.use('/test-sessions', testSessionRoutes);
+app.use('/positions', positionRoutes);
+app.use('/questions', questionRoutes);
+app.use('/question-groups', questionGroupRoutes);
+app.use('/attempts', attemptRoutes);
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
