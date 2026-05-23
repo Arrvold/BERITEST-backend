@@ -8,9 +8,14 @@ dotenv.config();
 const app = express();
 const port = process.env.PORT || 5000;
 
+import path from 'path';
+
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Serve static files from the uploads directory
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
 // Apply API Key security globally
 app.use(requireApiKey);
@@ -29,6 +34,7 @@ import positionRoutes from './routes/position.routes';
 import questionRoutes from './routes/question.routes';
 import questionGroupRoutes from './routes/question-group.routes';
 import attemptRoutes from './routes/attempt.routes';
+import uploadRoutes from './routes/upload.routes';
 
 app.use('/auth', authRoutes);
 app.use('/users', userRoutes);
@@ -39,6 +45,7 @@ app.use('/positions', positionRoutes);
 app.use('/questions', questionRoutes);
 app.use('/question-groups', questionGroupRoutes);
 app.use('/attempts', attemptRoutes);
+app.use('/upload', uploadRoutes);
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
