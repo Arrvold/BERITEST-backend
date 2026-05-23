@@ -191,6 +191,7 @@ export const startAttempt = async (req: AuthRequest, res: Response): Promise<voi
     const fullAttempt = await prisma.trn_test_attempt.findUnique({
       where: { id_test_attempt: attempt.id_test_attempt },
       include: {
+        trn_test_session: true,
         trn_attempt_question: {
           orderBy: { question_order: 'asc' },
           include: {
