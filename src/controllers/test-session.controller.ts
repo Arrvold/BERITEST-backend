@@ -11,6 +11,18 @@ export const getTestSessions = async (req: Request, res: Response): Promise<void
     const pageSize = parseInt(limit as string, 10);
     const skip = (pageNumber - 1) * pageSize;
 
+    // --- Lazy Status Update ---
+    const now = new Date();
+    await prisma.trn_test_session.updateMany({
+      where: { status: 'Upcoming', start_time: { lte: now } },
+      data: { status: 'Active' }
+    });
+    await prisma.trn_test_session.updateMany({
+      where: { status: 'Active', end_time: { lte: now } },
+      data: { status: 'Completed' }
+    });
+    // --------------------------
+
     const whereClause: any = {};
 
     if (search) {
@@ -161,6 +173,18 @@ export const getTestSessionDetail = async (req: Request, res: Response): Promise
   try {
     const id = parseInt(req.params.id as string, 10);
 
+    // --- Lazy Status Update ---
+    const now = new Date();
+    await prisma.trn_test_session.updateMany({
+      where: { id_session: id, status: 'Upcoming', start_time: { lte: now } },
+      data: { status: 'Active' }
+    });
+    await prisma.trn_test_session.updateMany({
+      where: { id_session: id, status: 'Active', end_time: { lte: now } },
+      data: { status: 'Completed' }
+    });
+    // --------------------------
+
     const session = await prisma.trn_test_session.findUnique({
       where: { id_session: id },
       include: {
@@ -292,6 +316,21 @@ export const assignQuestionGroups = async (req: AuthRequest, res: Response): Pro
       return;
     }
 
+    // Delete existing mappings that are NOT in the new list
+    if (question_group_ids.length > 0) {
+      await prisma.trn_session_question_group.deleteMany({
+        where: {
+          id_session: id,
+          id_question_group: { notIn: question_group_ids }
+        }
+      });
+    } else {
+      // If array is empty, delete all mappings
+      await prisma.trn_session_question_group.deleteMany({
+        where: { id_session: id }
+      });
+    }
+
     // Check existing mapping
     const existing = await prisma.trn_session_question_group.findMany({
       where: {
@@ -303,22 +342,19 @@ export const assignQuestionGroups = async (req: AuthRequest, res: Response): Pro
     const existingGroupIds = existing.map(e => e.id_question_group);
     const newGroupIds = question_group_ids.filter((gid: number) => !existingGroupIds.includes(gid));
 
-    if (newGroupIds.length === 0) {
-      res.status(200).json({ message: 'All provided question groups are already assigned to this session' });
-      return;
+    if (newGroupIds.length > 0) {
+      await prisma.trn_session_question_group.createMany({
+        data: newGroupIds.map((groupId: number) => ({
+          id_session: id,
+          id_question_group: groupId,
+          created_by: creator_id
+        }))
+      });
     }
 
-    await prisma.trn_session_question_group.createMany({
-      data: newGroupIds.map((groupId: number) => ({
-        id_session: id,
-        id_question_group: groupId,
-        created_by: creator_id
-      }))
-    });
-
-    res.status(201).json({ 
-      message: `Successfully assigned ${newGroupIds.length} question groups to the session`,
-      assigned_groups: newGroupIds
+    res.status(200).json({ 
+      message: 'Successfully synced question groups for the session',
+      assigned_groups: question_group_ids
     });
   } catch (error) {
     console.error('Error assigning question groups:', error);
